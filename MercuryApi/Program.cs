@@ -2,7 +2,10 @@ global using MercuryApi.Data.Entities;
 using MercuryApi.Data;
 using MercuryApi.Data.Repository;
 using MercuryApi.Helpers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +20,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        string signingKey = builder.Configuration.GetSection("SigningKey").Value ?? throw new Exception("Coud not find signing key.");
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
+                .GetBytes(signingKey)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true
+        };
+    });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -28,15 +46,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().SetIsOriginAllowed(origin => true).AllowCredentials());
-
-app.UseCookiePolicy(
-    new CookiePolicyOptions()
-    {
-        Secure = CookieSecurePolicy.Always,
-        MinimumSameSitePolicy = SameSiteMode.None,
-        //HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.None
-    });
+app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200").AllowCredentials());
 
 app.UseAuthentication();
 

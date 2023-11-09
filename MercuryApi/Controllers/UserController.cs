@@ -2,8 +2,9 @@
 using MercuryApi.Data.Dtos;
 using MercuryApi.Data.Repository;
 using MercuryApi.Data.Upserts;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace MercuryApi.Controllers
@@ -14,11 +15,13 @@ namespace MercuryApi.Controllers
     {
         private readonly IRepositoryManager _repositoryManager;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
 
-        public UserController(IRepositoryManager repositoryManager, IMapper mapper)
+        public UserController(IRepositoryManager repositoryManager, IMapper mapper, IConfiguration configuration)
         {
             _repositoryManager = repositoryManager;
             _mapper = mapper;
+            _configuration = configuration;
         }
 
         [HttpGet("{userId}")]
@@ -33,14 +36,14 @@ namespace MercuryApi.Controllers
             return Ok(userDto);
         }
 
-        [HttpPost]
-        public async Task<ActionResult> CreateUser(UserUpsert userUpsert)
+        [HttpPost("sign-up")]
+        public async Task<ActionResult<string>> CreateUser(UserUpsert request)
         {
-            if (await _repositoryManager.User.GetUserByUsername(userUpsert.Username, false) != null)
+            if (await _repositoryManager.User.GetUserByUsername(request.Username, false) != null)
             {
                 return BadRequest("Username is already taken.");
             }
-            User user = _mapper.Map<User>(userUpsert);
+            User user = _mapper.Map<User>(request);
 
             // Hash password.
             string passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(user.Password, 13);
@@ -49,16 +52,7 @@ namespace MercuryApi.Controllers
             await _repositoryManager.User.CreateUser(user);
             await _repositoryManager.SaveAsync();
 
-            await HttpContext.SignInAsync("default", new ClaimsPrincipal(
-                new ClaimsIdentity(
-                    new Claim[]
-                    {
-                        new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
-                    }, "default")
-                ));
-
-            UserDto userDto = _mapper.Map<UserDto>(user);
-            return CreatedAtAction(nameof(GetUserById), new { userId = user.Id }, userDto);
+            return Ok(CreateToken(user.Username));
         }
 
         [HttpGet("check-if-username-exists/{username}")]
@@ -72,14 +66,33 @@ namespace MercuryApi.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<string> Login(UserUpsert userUpsert)
+        public async Task<ActionResult<string>> Login(UserUpsert request)
         {
-            User? user = await _repositoryManager.User.GetUserByUsername(userUpsert.Username, false);
-            if (user == null || !BCrypt.Net.BCrypt.EnhancedVerify(userUpsert.Password, user.Password))
+            User? user = await _repositoryManager.User.GetUserByUsername(request.Username, false);
+            if (user == null || !BCrypt.Net.BCrypt.EnhancedVerify(request.Password, user.Password))
             {
-                return "Failed to log in.";
+                return Unauthorized("Failed to log in.");
             }
-            return "Logged in";
+            return Ok(CreateToken(request.Username));
+        }
+
+        private string CreateToken(string username)
+        {
+            List<Claim> claims = new()
+            {
+                new Claim(ClaimTypes.Name, username)
+            };
+
+            string signingKey = _configuration.GetSection("SigningKey").Value ?? throw new Exception("Coud not find signing key.");
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(signingKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(-1),
+                signingCredentials: creds);
+
+            string jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            return jwt;
         }
     }
 }
