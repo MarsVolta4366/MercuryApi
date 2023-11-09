@@ -2,7 +2,9 @@
 using MercuryApi.Data.Dtos;
 using MercuryApi.Data.Repository;
 using MercuryApi.Data.Upserts;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace MercuryApi.Controllers
 {
@@ -47,20 +49,37 @@ namespace MercuryApi.Controllers
             await _repositoryManager.User.CreateUser(user);
             await _repositoryManager.SaveAsync();
 
+            await HttpContext.SignInAsync("default", new ClaimsPrincipal(
+                new ClaimsIdentity(
+                    new Claim[]
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
+                    }, "default")
+                ));
+
             UserDto userDto = _mapper.Map<UserDto>(user);
             return CreatedAtAction(nameof(GetUserById), new { userId = user.Id }, userDto);
         }
 
-        //[HttpPost("login")]
-        //public async Task<string> Login(UserUpsert userUpsert)
-        //{
-        //    User? user = await _repositoryManager.User.GetUserByUsername(userUpsert.Username, false);
-        //    if (user != null && BCrypt.Net.BCrypt.EnhancedVerify(userUpsert.Password, user.Password))
-        //    {
-        //        return "Logged in";
+        [HttpGet("check-if-username-exists/{username}")]
+        public async Task<ActionResult> CheckIfUsernameExists([FromRoute] string username)
+        {
+            if (await _repositoryManager.User.GetUserByUsername(username, false) != null)
+            {
+                return Ok(new { exists = true });
+            }
+            return Ok(new { exists = false });
+        }
 
-        //    }
-        //    return "Nope";
-        //}
+        [HttpPost("login")]
+        public async Task<string> Login(UserUpsert userUpsert)
+        {
+            User? user = await _repositoryManager.User.GetUserByUsername(userUpsert.Username, false);
+            if (user == null || !BCrypt.Net.BCrypt.EnhancedVerify(userUpsert.Password, user.Password))
+            {
+                return "Failed to log in.";
+            }
+            return "Logged in";
+        }
     }
 }

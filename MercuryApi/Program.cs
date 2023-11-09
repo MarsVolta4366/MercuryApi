@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAuthentication().AddCookie("default");
 builder.Services.AddDbContext<MercuryDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("MercuryDb")));
 builder.Services.AddScoped<IRepositoryManager, RepositoryManager>();
 
@@ -26,6 +27,18 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().SetIsOriginAllowed(origin => true).AllowCredentials());
+
+app.UseCookiePolicy(
+    new CookiePolicyOptions()
+    {
+        Secure = CookieSecurePolicy.Always,
+        MinimumSameSitePolicy = SameSiteMode.None,
+        //HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.None
+    });
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
