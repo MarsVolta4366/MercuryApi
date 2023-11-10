@@ -2,6 +2,7 @@
 using MercuryApi.Data.Dtos;
 using MercuryApi.Data.Repository;
 using MercuryApi.Data.Upserts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -24,7 +25,7 @@ namespace MercuryApi.Controllers
             _configuration = configuration;
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet("{userId}"), Authorize]
         public async Task<ActionResult> GetUserById([FromRoute] int userId)
         {
             User? user = await _repositoryManager.User.GetUserById(userId, trackChanges: false);
@@ -65,8 +66,8 @@ namespace MercuryApi.Controllers
             return Ok(new { exists = false });
         }
 
-        [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(UserUpsert request)
+        [HttpPost("log-in")]
+        public async Task<ActionResult<string>> LogIn(UserUpsert request)
         {
             User? user = await _repositoryManager.User.GetUserByUsername(request.Username, false);
             if (user == null || !BCrypt.Net.BCrypt.EnhancedVerify(request.Password, user.Password))
@@ -88,7 +89,7 @@ namespace MercuryApi.Controllers
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddDays(-1),
+                expires: DateTime.Now.AddDays(1),
                 signingCredentials: creds);
 
             string jwt = new JwtSecurityTokenHandler().WriteToken(token);
