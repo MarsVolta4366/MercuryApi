@@ -25,16 +25,17 @@ namespace MercuryApi.Controllers
             _configuration = configuration;
         }
 
-        [HttpGet("{userId}"), Authorize]
-        public async Task<ActionResult> GetUserById([FromRoute] int userId)
+        [HttpGet("get-current-user"), Authorize]
+        public async Task<ActionResult<UserDto?>> GetCurrentUser()
         {
-            User? user = await _repositoryManager.User.GetUserById(userId, trackChanges: false);
+            string userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            User? user = await _repositoryManager.User.GetUserById(int.Parse(userId), trackChanges: false);
             if (user == null)
             {
-                return NotFound($"No user found with id {userId}");
+                return Unauthorized();
             }
-            UserDto userDto = _mapper.Map<UserDto>(user);
-            return Ok(userDto);
+            UserDto response = _mapper.Map<UserDto>(user);
+            return Ok(response);
         }
 
         [HttpPost("sign-up")]
@@ -53,7 +54,7 @@ namespace MercuryApi.Controllers
             await _repositoryManager.User.CreateUser(user);
             await _repositoryManager.SaveAsync();
 
-            return Ok(CreateToken(user.Username));
+            return Ok(CreateToken(user));
         }
 
         [HttpGet("check-if-username-exists/{username}")]
@@ -74,14 +75,15 @@ namespace MercuryApi.Controllers
             {
                 return Unauthorized("Failed to log in.");
             }
-            return Ok(CreateToken(request.Username));
+            return Ok(CreateToken(user));
         }
 
-        private string CreateToken(string username)
+        private string CreateToken(User user)
         {
             List<Claim> claims = new()
             {
-                new Claim(ClaimTypes.Name, username)
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             };
 
             string signingKey = _configuration.GetSection("SigningKey").Value ?? throw new Exception("Coud not find signing key.");
