@@ -8,8 +8,13 @@ namespace MercuryApi.Helpers
     {
         public MappingProfile()
         {
+            // User mappings.
             CreateMap<UserUpsert, User>();
-            CreateMap<User, UserDto>();
+            CreateMap<User, UserDto>().ReverseMap();
+
+            // Team mappings.
+            CreateMap<TeamUpsert, Team>()
+                .ForMember(t => t.Users, opt => opt.Ignore());
         }
     }
 }
