@@ -15,6 +15,8 @@ namespace MercuryApi.Helpers
             // Team mappings.
             CreateMap<TeamUpsert, Team>()
                 .ForMember(t => t.Users, opt => opt.Ignore());
+
+            CreateMap<Team, TeamDto>();
         }
     }
 }

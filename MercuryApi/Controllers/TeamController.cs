@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
 using MercuryApi.Data.Dtos;
-using MercuryApi.Data.Entities;
 using MercuryApi.Data.Repository;
 using MercuryApi.Data.Upserts;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection.Metadata.Ecma335;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MercuryApi.Controllers
 {
@@ -25,13 +23,23 @@ namespace MercuryApi.Controllers
         [HttpPost("create")]
         public async Task<ActionResult> CreateTeam([FromBody] TeamUpsert request)
         {
+            if (await _repositoryManager.Team.GetTeamByName(request.Name) != null)
+            {
+                return BadRequest($"Team name {request.Name} is already taken.");
+            }
+            if (request.Users.IsNullOrEmpty())
+            {
+                return BadRequest("A new team must have at least one user.");
+            }
             List<User> teamUsers = await _repositoryManager.User.GetUsersByIds(request.Users.Select(user => user.Id), trackChanges: true);
 
             Team team = _mapper.Map<Team>(request);
             team.Users = teamUsers;
             await _repositoryManager.Team.CreateTeam(team);
             await _repositoryManager.SaveAsync();
-            return Ok("Team created");
+
+            TeamDto response = _mapper.Map<TeamDto>(team);
+            return Ok(response);
         }
     }
 }
