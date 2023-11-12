@@ -2,8 +2,10 @@
 using MercuryApi.Data.Dtos;
 using MercuryApi.Data.Repository;
 using MercuryApi.Data.Upserts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 
 namespace MercuryApi.Controllers
 {
@@ -18,6 +20,26 @@ namespace MercuryApi.Controllers
         {
             _repositoryManager = repositoryManager;
             _mapper = mapper;
+        }
+
+        [HttpGet("get-current-users-teams"), Authorize]
+        public async Task<ActionResult> GetCurrentUsersTeams()
+        {
+            string userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            List<Team> usersTeams = await _repositoryManager.Team.GetTeamsByUserId(int.Parse(userId));
+            List<TeamDto> response = _mapper.Map<List<TeamDto>>(usersTeams);
+            return Ok(response);
+        }
+
+        [HttpGet("check-if-team-name-exists/{teamName}")]
+        public async Task<ActionResult> CheckIfTeamNameExists([FromRoute] string teamName)
+        {
+            if (await _repositoryManager.Team.GetTeamByName(teamName) != null)
+            {
+                return Ok(new { exists = true });
+            }
+            return Ok(new { exists = false });
         }
 
         [HttpPost("create")]
