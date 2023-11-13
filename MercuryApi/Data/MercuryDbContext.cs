@@ -16,6 +16,8 @@ public partial class MercuryDbContext : DbContext
     {
     }
 
+    public virtual DbSet<Project> Projects { get; set; }
+
     public virtual DbSet<Team> Teams { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -25,6 +27,22 @@ public partial class MercuryDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Project>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Project__3214EC0742969F99");
+
+            entity.ToTable("Project");
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Team).WithMany(p => p.Projects)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Project__TeamId__36B12243");
+        });
+
         modelBuilder.Entity<Team>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Team__3214EC079A3A0FF5");
