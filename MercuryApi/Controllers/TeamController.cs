@@ -32,6 +32,16 @@ namespace MercuryApi.Controllers
             return Ok(response);
         }
 
+        [HttpGet("get-team-by-id/{teamId}"), Authorize]
+        public async Task<ActionResult> GetTeamById([FromRoute] int teamId)
+        {
+            Team? team = await _repositoryManager.Team.GetTeamById(teamId);
+            if (team == null) return BadRequest("Team not found.");
+
+            TeamDto response = _mapper.Map<TeamDto>(team);
+            return Ok(response);
+        }
+
         [HttpGet("check-if-team-name-exists/{teamName}")]
         public async Task<ActionResult> CheckIfTeamNameExists([FromRoute] string teamName)
         {
@@ -42,7 +52,7 @@ namespace MercuryApi.Controllers
             return Ok(new { exists = false });
         }
 
-        [HttpPost("create")]
+        [HttpPost("create"), Authorize]
         public async Task<ActionResult> CreateTeam([FromBody] TeamUpsert request)
         {
             if (await _repositoryManager.Team.GetTeamByName(request.Name) != null)

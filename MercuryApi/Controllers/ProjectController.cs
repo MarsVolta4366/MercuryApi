@@ -2,6 +2,7 @@
 using MercuryApi.Data.Dtos;
 using MercuryApi.Data.Repository;
 using MercuryApi.Data.Upserts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MercuryApi.Controllers
@@ -19,7 +20,20 @@ namespace MercuryApi.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost("create")]
+        [HttpPost("check-if-project-name-exists")]
+        public async Task<ActionResult> CheckIfProjectNameExists([FromBody] ProjectUpsert request)
+        {
+            IEnumerable<Project> teamProjects = await _repositoryManager.Project.GetProjectsByTeamId(request.TeamId, trackChanges: false);
+
+            // If the request.team already has a project with the request.name, return bad request.
+            if (teamProjects.Select(p => p.Name).Contains(request.Name))
+            {
+                return Ok(new { exists = true });
+            }
+            return Ok(new { exists = false });
+        }
+
+        [HttpPost("create"), Authorize]
         public async Task<ActionResult> CreateProject([FromBody] ProjectUpsert request)
         {
             IEnumerable<Project> teamProjects = await _repositoryManager.Project.GetProjectsByTeamId(request.TeamId, trackChanges: false);
