@@ -73,5 +73,24 @@ namespace MercuryApi.Controllers
             TeamDto response = _mapper.Map<TeamDto>(team);
             return Ok(response);
         }
+
+        [HttpPost("add-users-to-team"), Authorize]
+        public async Task<ActionResult> AddUsersToTeam([FromBody] TeamUpsert request)
+        {
+            Team? team = await _repositoryManager.Team.GetTeamById(request.Id, true);
+            if (team == null) return BadRequest("Team not found.");
+
+            List<User> newUsers = await _repositoryManager.User.GetUsersByIds(request.Users.Select(user => user.Id), trackChanges: false);
+
+            foreach (User user in newUsers)
+            {
+                team.Users.Add(user);
+            }
+
+            await _repositoryManager.SaveAsync();
+            TeamDto response = _mapper.Map<TeamDto>(team);
+
+            return Ok(response);
+        }
     }
 }

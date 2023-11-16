@@ -57,14 +57,13 @@ namespace MercuryApi.Controllers
             return Ok(CreateToken(user));
         }
 
-        [HttpGet("check-if-username-exists/{username}")]
-        public async Task<ActionResult> CheckIfUsernameExists([FromRoute] string username)
+        [HttpGet("get-user-by-username/{username}")]
+        public async Task<ActionResult> GetUserByUsername([FromRoute] string username)
         {
-            if (await _repositoryManager.User.GetUserByUsername(username, false) != null)
-            {
-                return Ok(new { exists = true });
-            }
-            return Ok(new { exists = false });
+            User? user = await _repositoryManager.User.GetUserByUsername(username, trackChanges: false);
+            UserDto? response = user != null ? _mapper.Map<UserDto>(user) : null;
+
+            return Ok(response);
         }
 
         [HttpPost("log-in")]
