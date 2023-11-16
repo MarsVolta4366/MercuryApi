@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MercuryApi.Data.Dtos;
 using MercuryApi.Data.Repository;
+using MercuryApi.Data.RequestModels;
 using MercuryApi.Data.Upserts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -90,6 +91,39 @@ namespace MercuryApi.Controllers
             await _repositoryManager.SaveAsync();
             TeamDto response = _mapper.Map<TeamDto>(team);
 
+            return Ok(response);
+        }
+
+        [HttpPost("remove-user-from-team"), Authorize]
+        public async Task<ActionResult> RemoveUserFromTeam([FromBody] RemoveUserFromTeamRequest request)
+        {
+            Team? team = await _repositoryManager.Team.GetTeamById(request.TeamId, trackChanges: true);
+            if (team == null) return BadRequest("Team not found.");
+            User? userToRemove = team.Users.SingleOrDefault(x => x.Id == request.UserId);
+            if (userToRemove == null) return BadRequest("User not found in team users.");
+
+            team.Users.Remove(userToRemove);
+            await _repositoryManager.SaveAsync();
+
+            TeamDto response = _mapper.Map<TeamDto>(team);
+            return Ok(response);
+        }
+
+        [HttpGet("user-is-in-team/{teamId}"), Authorize]
+        public async Task<ActionResult> UserIsInTeam([FromRoute] int teamId)
+        {
+            string userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            Team? team = await _repositoryManager.Team.GetTeamById(teamId);
+            if (team is null) return BadRequest("Team not found.");
+
+            // If the current user isn't in the given team, return unauthorized.
+            if (!team.Users.Select(x => x.Id).ToList().Contains(int.Parse(userId)))
+            {
+                return Unauthorized();
+            }
+
+            TeamDto response = _mapper.Map<TeamDto>(team);
             return Ok(response);
         }
     }
