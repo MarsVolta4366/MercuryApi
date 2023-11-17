@@ -39,8 +39,7 @@ public partial class MercuryDbContext : DbContext
 
             entity.HasOne(d => d.Team).WithMany(p => p.Projects)
                 .HasForeignKey(d => d.TeamId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Project__TeamId__36B12243");
+                .HasConstraintName("FK__Project__TeamId__47DBAE45");
         });
 
         modelBuilder.Entity<Team>(entity =>
@@ -72,12 +71,10 @@ public partial class MercuryDbContext : DbContext
                     "UserTeam",
                     r => r.HasOne<Team>().WithMany()
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__UserTeam__TeamId__29572725"),
+                        .HasConstraintName("FK__UserTeam__TeamId__49C3F6B7"),
                     l => l.HasOne<User>().WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__UserTeam__UserId__286302EC"),
+                        .HasConstraintName("FK__UserTeam__UserId__48CFD27E"),
                     j =>
                     {
                         j.HasKey("UserId", "TeamId").HasName("PK__UserTeam__96AB623537E9A7E7");
