@@ -12,4 +12,6 @@ public partial class Project
     public string Name { get; set; } = null!;
 
     public virtual Team Team { get; set; } = null!;
+
+    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

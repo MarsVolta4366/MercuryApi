@@ -20,6 +20,8 @@ public partial class MercuryDbContext : DbContext
 
     public virtual DbSet<Team> Teams { get; set; }
 
+    public virtual DbSet<Ticket> Tickets { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -51,6 +53,29 @@ public partial class MercuryDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Ticket>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Ticket__3214EC07099210D3");
+
+            entity.ToTable("Ticket");
+
+            entity.Property(e => e.Content)
+                .HasMaxLength(200)
+                .IsUnicode(false);
+            entity.Property(e => e.Title)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Project).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.ProjectId)
+                .HasConstraintName("FK__Ticket__ProjectI__4CA06362");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__Ticket__UserId__4D94879B");
         });
 
         modelBuilder.Entity<User>(entity =>

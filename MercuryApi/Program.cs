@@ -1,4 +1,5 @@
 global using MercuryApi.Data.Entities;
+using MercuryApi.BLL;
 using MercuryApi.Data;
 using MercuryApi.Data.Repository;
 using MercuryApi.Helpers;
@@ -14,6 +15,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddAuthentication().AddCookie("default");
 builder.Services.AddDbContext<MercuryDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("MercuryDb")));
 builder.Services.AddScoped<IRepositoryManager, RepositoryManager>();
+builder.Services.AddScoped<ITicketBusinessLogic, TicketBusinessLogic>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
