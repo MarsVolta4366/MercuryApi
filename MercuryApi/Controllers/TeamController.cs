@@ -126,5 +126,17 @@ namespace MercuryApi.Controllers
             TeamDto response = _mapper.Map<TeamDto>(team);
             return Ok(response);
         }
+
+        [HttpDelete("delete-team-by-id/{teamId}")]
+        public async Task<ActionResult> DeleteTeamById([FromRoute] int teamId)
+        {
+            Team? team = await _repositoryManager.Team.GetTeamById(teamId);
+            if (team is null) return BadRequest("Team not found.");
+
+            _repositoryManager.Team.DeleteTeam(team);
+            await _repositoryManager.SaveAsync();
+
+            return NoContent();
+        }
     }
 }

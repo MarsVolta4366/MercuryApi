@@ -8,6 +8,7 @@ namespace MercuryApi.Data.Repository
         Task<Team?> GetTeamByName(string name, bool trackChanges = false);
         Task<List<Team>> GetTeamsByUserId(int userId, bool trackChanges = false);
         Task CreateTeam(Team team);
+        void DeleteTeam(Team teamId);
     }
 
     public class TeamRepository : RepositoryBase<Team>, ITeamRepository
@@ -29,5 +30,8 @@ namespace MercuryApi.Data.Repository
 
         public async Task CreateTeam(Team team) =>
             await Create(team);
+
+        public void DeleteTeam(Team team) =>
+            Delete(team);
     }
 }
