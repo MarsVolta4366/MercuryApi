@@ -16,6 +16,7 @@ builder.Services.AddAuthentication().AddCookie("default");
 builder.Services.AddDbContext<MercuryDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("MercuryDb")));
 builder.Services.AddScoped<IRepositoryManager, RepositoryManager>();
 builder.Services.AddScoped<ITicketBusinessLogic, TicketBusinessLogic>();
+builder.Services.AddScoped<IUserBusinessLogic, UserBusinessLogic>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -5,8 +5,8 @@ namespace MercuryApi.Data.Repository
     public interface IUserRepository
     {
         Task<IEnumerable<User>> GetAllUsers(bool trackChanges);
-        Task<User?> GetUserByUsername(string username, bool trackChanges);
-        Task<User?> GetUserById(int userId, bool trackChanges);
+        Task<User?> GetUserByUsername(string username, bool trackChanges = false);
+        Task<User?> GetUserById(int userId, bool trackChanges = false);
         Task<List<User>> GetUsersByIds(IEnumerable<int> userIds, bool trackChanges);
         Task CreateUser(User user);
     }
@@ -18,10 +18,10 @@ namespace MercuryApi.Data.Repository
         public async Task<IEnumerable<User>> GetAllUsers(bool trackChanges) =>
             await FindAll(trackChanges).ToListAsync();
 
-        public async Task<User?> GetUserByUsername(string username, bool trackChanges) =>
+        public async Task<User?> GetUserByUsername(string username, bool trackChanges = false) =>
             await FindByCondition(user => user.Username == username, trackChanges).FirstOrDefaultAsync();
 
-        public async Task<User?> GetUserById(int userId, bool trackChanges) =>
+        public async Task<User?> GetUserById(int userId, bool trackChanges = false) =>
             await FindByCondition(user => user.Id == userId, trackChanges).FirstOrDefaultAsync();
 
         public async Task<List<User>> GetUsersByIds(IEnumerable<int> userIds, bool trackChanges) =>

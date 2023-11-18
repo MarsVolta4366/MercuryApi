@@ -1,11 +1,8 @@
-﻿using AutoMapper;
+﻿using MercuryApi.BLL;
 using MercuryApi.Data.Dtos;
-using MercuryApi.Data.Repository;
 using MercuryApi.Data.Upserts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace MercuryApi.Controllers
@@ -14,87 +11,46 @@ namespace MercuryApi.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IRepositoryManager _repositoryManager;
-        private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
+        private readonly IUserBusinessLogic _userBusinessLogic;
 
-        public UserController(IRepositoryManager repositoryManager, IMapper mapper, IConfiguration configuration)
+        public UserController(IUserBusinessLogic userBusinessLogic)
         {
-            _repositoryManager = repositoryManager;
-            _mapper = mapper;
-            _configuration = configuration;
+            _userBusinessLogic = userBusinessLogic;
         }
 
         [HttpGet("get-current-user"), Authorize]
         public async Task<ActionResult<UserDto?>> GetCurrentUser()
         {
             string userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            User? user = await _repositoryManager.User.GetUserById(int.Parse(userId), trackChanges: false);
-            if (user == null)
-            {
-                return Unauthorized();
-            }
-            UserDto response = _mapper.Map<UserDto>(user);
+            UserDto? response = await _userBusinessLogic.GetUserById(int.Parse(userId));
+            if (response == null) return Unauthorized();
             return Ok(response);
         }
 
         [HttpPost("sign-up")]
-        public async Task<ActionResult<string>> CreateUser(UserUpsert request)
+        public async Task<ActionResult<string>> SignUp(UserUpsert request)
         {
-            if (await _repositoryManager.User.GetUserByUsername(request.Username, false) != null)
-            {
-                return BadRequest("Username is already taken.");
-            }
-            User user = _mapper.Map<User>(request);
-
-            // Hash password.
-            string passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(user.Password, 13);
-            user.Password = passwordHash;
-
-            await _repositoryManager.User.CreateUser(user);
-            await _repositoryManager.SaveAsync();
-
-            return Ok(CreateToken(user));
+            string? token = await _userBusinessLogic.SignUp(request);
+            if (token == null) return BadRequest("Username is already taken.");
+            return Ok(token);
         }
 
         [HttpGet("get-user-by-username/{username}")]
         public async Task<ActionResult> GetUserByUsername([FromRoute] string username)
         {
-            User? user = await _repositoryManager.User.GetUserByUsername(username, trackChanges: false);
-            UserDto? response = user != null ? _mapper.Map<UserDto>(user) : null;
-
+            UserDto? response = await _userBusinessLogic.GetUserByUsername(username);
             return Ok(response);
         }
 
         [HttpPost("log-in")]
         public async Task<ActionResult<string>> LogIn(UserUpsert request)
         {
-            User? user = await _repositoryManager.User.GetUserByUsername(request.Username, false);
-            if (user == null || !BCrypt.Net.BCrypt.EnhancedVerify(request.Password, user.Password))
+            string? token = await _userBusinessLogic.LogIn(request);
+            if (token == null)
             {
                 return Unauthorized("Failed to log in.");
             }
-            return Ok(CreateToken(user));
-        }
-
-        private string CreateToken(User user)
-        {
-            List<Claim> claims = new()
-            {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            };
-
-            string signingKey = _configuration.GetSection("SigningKey").Value ?? throw new Exception("Coud not find signing key.");
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(signingKey));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-            var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: creds);
-
-            string jwt = new JwtSecurityTokenHandler().WriteToken(token);
-            return jwt;
+            return Ok(token);
         }
     }
 }
