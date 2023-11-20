@@ -52,5 +52,15 @@ namespace MercuryApi.Controllers
 
             return Ok(response);
         }
+
+        [HttpGet("get-project-by-id/{projectId}")]
+        public async Task<ActionResult> GetProjectById([FromRoute] int projectId)
+        {
+            Project? project = await _repositoryManager.Project.GetProjectById(projectId);
+            ProjectDto? response = _mapper.Map<ProjectDto>(project);
+
+            if (response == null) return NotFound();
+            return Ok(response);
+        }
     }
 }

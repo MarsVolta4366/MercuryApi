@@ -7,5 +7,7 @@
         public int TeamId { get; set; }
 
         public string Name { get; set; } = null!;
+
+        public virtual ICollection<TicketDto> Tickets { get; set; } = new List<TicketDto>();
     }
 }

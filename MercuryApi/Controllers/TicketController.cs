@@ -1,4 +1,5 @@
 ﻿using MercuryApi.BLL;
+using MercuryApi.Data.Dtos;
 using MercuryApi.Data.Upserts;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,9 +19,9 @@ namespace MercuryApi.Controllers
         [HttpPost("create")]
         public async Task<ActionResult> CreateTicket([FromBody] TicketUpsert request)
         {
-            await _ticketBusinessLogic.CreateTicket(request);
+            TicketDto response = await _ticketBusinessLogic.CreateTicket(request);
 
-            return Ok("Ticket created.");
+            return Ok(response);
         }
     }
 }

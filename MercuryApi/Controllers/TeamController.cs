@@ -37,7 +37,7 @@ namespace MercuryApi.Controllers
         public async Task<ActionResult> GetTeamById([FromRoute] int teamId)
         {
             Team? team = await _repositoryManager.Team.GetTeamById(teamId);
-            if (team == null) return BadRequest("Team not found.");
+            if (team == null) return NotFound("Team not found.");
 
             TeamDto response = _mapper.Map<TeamDto>(team);
             return Ok(response);
