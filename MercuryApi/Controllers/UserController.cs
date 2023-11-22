@@ -42,6 +42,13 @@ namespace MercuryApi.Controllers
             return Ok(response);
         }
 
+        [HttpGet("get-user-by-username-and-team-id/{username}/{teamId}")]
+        public async Task<ActionResult> GetUserByUsernameAndTeamId([FromRoute] string username, [FromRoute] int teamId)
+        {
+            UserDto? response = await _userBusinessLogic.GetUserByUsernameAndTeamId(username, teamId);
+            return Ok(response);
+        }
+
         [HttpPost("log-in")]
         public async Task<ActionResult<string>> LogIn(UserUpsert request)
         {

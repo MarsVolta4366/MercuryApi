@@ -13,6 +13,7 @@ namespace MercuryApi.BLL
         Task<UserDto?> GetUserById(int userId);
         Task<string?> SignUp(UserUpsert request);
         Task<UserDto?> GetUserByUsername(string username);
+        Task<UserDto?> GetUserByUsernameAndTeamId(string username, int teamId);
         Task<string?> LogIn(UserUpsert request);
     }
 
@@ -53,6 +54,13 @@ namespace MercuryApi.BLL
         public async Task<UserDto?> GetUserByUsername(string username)
         {
             User? user = await _repositoryManager.User.GetUserByUsername(username);
+            return _mapper.Map<UserDto>(user);
+        }
+
+        public async Task<UserDto?> GetUserByUsernameAndTeamId(string username, int teamId)
+        {
+            Team? team = await _repositoryManager.Team.GetTeamById(teamId);
+            User? user = team?.Users.FirstOrDefault(x => x.Username == username);
             return _mapper.Map<UserDto>(user);
         }
 

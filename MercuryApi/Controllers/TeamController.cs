@@ -97,6 +97,7 @@ namespace MercuryApi.Controllers
         [HttpPost("remove-user-from-team"), Authorize]
         public async Task<ActionResult> RemoveUserFromTeam([FromBody] RemoveUserFromTeamRequest request)
         {
+            // TODO: Also need to unassign user from any assigned tickets under team.
             Team? team = await _repositoryManager.Team.GetTeamById(request.TeamId, trackChanges: true);
             if (team == null) return BadRequest("Team not found.");
             User? userToRemove = team.Users.SingleOrDefault(x => x.Id == request.UserId);
