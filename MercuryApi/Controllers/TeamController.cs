@@ -3,6 +3,7 @@ using MercuryApi.Data.Dtos;
 using MercuryApi.Data.Repository;
 using MercuryApi.Data.RequestModels;
 using MercuryApi.Data.Upserts;
+using MercuryApi.Helpers.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -97,9 +98,12 @@ namespace MercuryApi.Controllers
         [HttpPost("remove-user-from-team"), Authorize]
         public async Task<ActionResult> RemoveUserFromTeam([FromBody] RemoveUserFromTeamRequest request)
         {
-            // TODO: Also need to unassign user from any assigned tickets under team.
             Team? team = await _repositoryManager.Team.GetTeamById(request.TeamId, trackChanges: true);
             if (team == null) return BadRequest("Team not found.");
+
+            // Unassign user from any tasks under the given team.
+            team.UnassignUser(request.UserId);
+
             User? userToRemove = team.Users.SingleOrDefault(x => x.Id == request.UserId);
             if (userToRemove == null) return BadRequest("User not found in team users.");
 

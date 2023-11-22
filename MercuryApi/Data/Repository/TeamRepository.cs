@@ -18,6 +18,7 @@ namespace MercuryApi.Data.Repository
         public async Task<Team?> GetTeamById(int teamId, bool trackChanges = false) =>
             await FindByCondition(team => team.Id == teamId, trackChanges)
                 .Include(team => team.Projects)
+                    .ThenInclude(project => project.Tickets)
                 .Include(team => team.Users)
                 .FirstOrDefaultAsync();
 
