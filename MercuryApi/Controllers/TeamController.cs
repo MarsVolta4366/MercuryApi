@@ -101,11 +101,11 @@ namespace MercuryApi.Controllers
             Team? team = await _repositoryManager.Team.GetTeamById(request.TeamId, trackChanges: true);
             if (team == null) return BadRequest("Team not found.");
 
-            // Unassign user from any tasks under the given team.
-            team.UnassignUser(request.UserId);
-
             User? userToRemove = team.Users.SingleOrDefault(x => x.Id == request.UserId);
             if (userToRemove == null) return BadRequest("User not found in team users.");
+
+            // Unassign user from any tasks under the given team.
+            team.UnassignUser(request.UserId);
 
             team.Users.Remove(userToRemove);
             await _repositoryManager.SaveAsync();
