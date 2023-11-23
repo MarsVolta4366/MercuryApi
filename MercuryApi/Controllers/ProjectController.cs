@@ -62,5 +62,17 @@ namespace MercuryApi.Controllers
             if (response == null) return NotFound();
             return Ok(response);
         }
+
+        [HttpDelete("delete-by-project-id/{projectId}")]
+        public async Task<ActionResult> DeleteByProjectId([FromRoute] int projectId)
+        {
+            Project? project = await _repositoryManager.Project.GetProjectById(projectId);
+            if (project is null) return NotFound("Project not found.");
+
+            _repositoryManager.Project.DeleteProject(project);
+            await _repositoryManager.SaveAsync();
+
+            return NoContent();
+        }
     }
 }

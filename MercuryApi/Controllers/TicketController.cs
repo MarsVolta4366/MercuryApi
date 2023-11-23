@@ -23,5 +23,14 @@ namespace MercuryApi.Controllers
 
             return Ok(response);
         }
+
+        [HttpPut("update")]
+        public async Task<ActionResult> UpdateTicket([FromBody] TicketUpsert request)
+        {
+            TicketDto? response = await _ticketBusinessLogic.UpdateTicket(request);
+
+            if (response == null) return NotFound();
+            return Ok(response);
+        }
     }
 }

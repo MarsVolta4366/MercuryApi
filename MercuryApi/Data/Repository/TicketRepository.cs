@@ -1,8 +1,11 @@
-﻿namespace MercuryApi.Data.Repository
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace MercuryApi.Data.Repository
 {
     public interface ITicketRepository
     {
         Task CreateTicket(Ticket ticket);
+        Task<Ticket?> GetTicketById(int ticketId, bool trackChanges = false);
     }
 
     public class TicketRepository : RepositoryBase<Ticket>, ITicketRepository
@@ -11,5 +14,8 @@
 
         public async Task CreateTicket(Ticket ticket) =>
             await Create(ticket);
+
+        public async Task<Ticket?> GetTicketById(int ticketId, bool trackChanges = false) =>
+            await FindByCondition(ticket => ticket.Id == ticketId, trackChanges).FirstOrDefaultAsync();
     }
 }

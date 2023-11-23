@@ -7,6 +7,7 @@ namespace MercuryApi.Data.Repository
         Task<IEnumerable<Project>> GetProjectsByTeamId(int teamId, bool trackChanges);
         Task CreateProject(Project project);
         Task<Project?> GetProjectById(int projectId, bool trackChanges = false);
+        void DeleteProject(Project project);
     }
 
     public class ProjectRepository : RepositoryBase<Project>, IProjectRepository
@@ -24,5 +25,8 @@ namespace MercuryApi.Data.Repository
                 .Include(project => project.Tickets)
                     .ThenInclude(ticket => ticket.User)
                 .FirstOrDefaultAsync();
+
+        public void DeleteProject(Project project) =>
+            Delete(project);
     }
 }
