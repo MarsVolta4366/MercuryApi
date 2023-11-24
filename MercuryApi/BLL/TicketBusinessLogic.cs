@@ -7,6 +7,7 @@ namespace MercuryApi.BLL
 {
     public interface ITicketBusinessLogic
     {
+        Task<TicketDto?> GetTicketById(int ticketId);
         Task<TicketDto> CreateTicket(TicketUpsert request);
         Task<TicketDto?> UpdateTicket(TicketUpsert request);
     }
@@ -14,6 +15,12 @@ namespace MercuryApi.BLL
     public class TicketBusinessLogic : BusinessLogicBase, ITicketBusinessLogic
     {
         public TicketBusinessLogic(IRepositoryManager repositoryManager, IMapper mapper) : base(repositoryManager, mapper) { }
+
+        public async Task<TicketDto?> GetTicketById(int ticketId)
+        {
+            Ticket? ticket = await _repositoryManager.Ticket.GetTicketById(ticketId);
+            return _mapper.Map<TicketDto>(ticket);
+        }
 
         public async Task<TicketDto> CreateTicket(TicketUpsert request)
         {

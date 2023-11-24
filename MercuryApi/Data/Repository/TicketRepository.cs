@@ -16,6 +16,8 @@ namespace MercuryApi.Data.Repository
             await Create(ticket);
 
         public async Task<Ticket?> GetTicketById(int ticketId, bool trackChanges = false) =>
-            await FindByCondition(ticket => ticket.Id == ticketId, trackChanges).FirstOrDefaultAsync();
+            await FindByCondition(ticket => ticket.Id == ticketId, trackChanges)
+                .Include(ticket => ticket.User)
+                .FirstOrDefaultAsync();
     }
 }

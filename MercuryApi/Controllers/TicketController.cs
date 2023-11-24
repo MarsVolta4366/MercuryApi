@@ -16,7 +16,15 @@ namespace MercuryApi.Controllers
             _ticketBusinessLogic = ticketBusinessLogic;
         }
 
-        [HttpPost("create")]
+        [HttpGet("{ticketId}")]
+        public async Task<ActionResult> GetTicketById([FromRoute] int ticketId)
+        {
+            TicketDto? response = await _ticketBusinessLogic.GetTicketById(ticketId);
+            if (response == null) return NotFound();
+            return Ok(response);
+        }
+
+        [HttpPost]
         public async Task<ActionResult> CreateTicket([FromBody] TicketUpsert request)
         {
             TicketDto response = await _ticketBusinessLogic.CreateTicket(request);
@@ -24,7 +32,7 @@ namespace MercuryApi.Controllers
             return Ok(response);
         }
 
-        [HttpPut("update")]
+        [HttpPut]
         public async Task<ActionResult> UpdateTicket([FromBody] TicketUpsert request)
         {
             TicketDto? response = await _ticketBusinessLogic.UpdateTicket(request);
