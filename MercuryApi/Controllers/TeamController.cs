@@ -61,11 +61,13 @@ namespace MercuryApi.Controllers
             {
                 return BadRequest($"Team name {request.Name} is already taken.");
             }
-            if (request.Users.IsNullOrEmpty())
-            {
-                return BadRequest("A new team must have at least one user.");
-            }
-            List<User> teamUsers = await _repositoryManager.User.GetUsersByIds(request.Users.Select(user => user.Id), trackChanges: true);
+            List<int> userIds = request.Users.Select(user => user.Id).ToList();
+
+            // Get the id of the user who's creating the team and add them to the team.
+            string userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            userIds.Add(int.Parse(userId));
+
+            List<User> teamUsers = await _repositoryManager.User.GetUsersByIds(userIds, trackChanges: true);
 
             Team team = _mapper.Map<Team>(request);
             team.Users = teamUsers;
