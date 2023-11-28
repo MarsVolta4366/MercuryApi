@@ -1,6 +1,6 @@
-﻿using AutoMapper;
+﻿using MercuryApi.BLL;
 using MercuryApi.Data.Dtos;
-using MercuryApi.Data.Repository;
+using MercuryApi.Data.NonEntityDtos;
 using MercuryApi.Data.Upserts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,46 +9,28 @@ namespace MercuryApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ProjectController : ControllerBase
     {
-        private readonly IRepositoryManager _repositoryManager;
-        private readonly IMapper _mapper;
+        private readonly IProjectBusinessLogic _projectBusinessLogic;
 
-        public ProjectController(IRepositoryManager repositoryManager, IMapper mapper)
+        public ProjectController(IProjectBusinessLogic projectBusinessLogic)
         {
-            _repositoryManager = repositoryManager;
-            _mapper = mapper;
+            _projectBusinessLogic = projectBusinessLogic;
         }
 
         [HttpPost("check-if-project-name-exists")]
         public async Task<ActionResult> CheckIfProjectNameExists([FromBody] ProjectUpsert request)
         {
-            IEnumerable<Project> teamProjects = await _repositoryManager.Project.GetProjectsByTeamId(request.TeamId, trackChanges: false);
-
-            // If the request.team already has a project with the request.name, return bad request.
-            if (teamProjects.Select(p => p.Name).Contains(request.Name))
-            {
-                return Ok(new { exists = true });
-            }
-            return Ok(new { exists = false });
+            ExistsDto response = await _projectBusinessLogic.ProjectNameExists(request);
+            return Ok(response);
         }
 
-        [HttpPost("create"), Authorize]
+        [HttpPost("create")]
         public async Task<ActionResult> CreateProject([FromBody] ProjectUpsert request)
         {
-            IEnumerable<Project> teamProjects = await _repositoryManager.Project.GetProjectsByTeamId(request.TeamId, trackChanges: false);
-
-            // If the request.team already has a project with the request.name, return bad request.
-            if (teamProjects.Select(p => p.Name).Contains(request.Name))
-            {
-                return BadRequest($"This team already has a project called {request.Name}.");
-            }
-
-            Project project = _mapper.Map<Project>(request);
-            await _repositoryManager.Project.CreateProject(project);
-            await _repositoryManager.SaveAsync();
-
-            ProjectDto response = _mapper.Map<ProjectDto>(project);
+            ProjectDto? response = await _projectBusinessLogic.CreateProject(request);
+            if (response == null) return BadRequest($"This team already has a project called {request.Name}.");
 
             return Ok(response);
         }
@@ -56,22 +38,16 @@ namespace MercuryApi.Controllers
         [HttpGet("get-project-by-id/{projectId}")]
         public async Task<ActionResult> GetProjectById([FromRoute] int projectId)
         {
-            Project? project = await _repositoryManager.Project.GetProjectById(projectId);
-            ProjectDto? response = _mapper.Map<ProjectDto>(project);
+            ProjectDto? response = await _projectBusinessLogic.GetProjectById(projectId);
 
             if (response == null) return NotFound();
             return Ok(response);
         }
 
-        [HttpDelete("delete-by-project-id/{projectId}")]
-        public async Task<ActionResult> DeleteByProjectId([FromRoute] int projectId)
+        [HttpDelete("delete-project-by-id/{projectId}")]
+        public async Task<ActionResult> DeleteProjectById([FromRoute] int projectId)
         {
-            Project? project = await _repositoryManager.Project.GetProjectById(projectId);
-            if (project is null) return NotFound("Project not found.");
-
-            _repositoryManager.Project.DeleteProject(project);
-            await _repositoryManager.SaveAsync();
-
+            await _projectBusinessLogic.DeleteProjectById(projectId);
             return NoContent();
         }
     }

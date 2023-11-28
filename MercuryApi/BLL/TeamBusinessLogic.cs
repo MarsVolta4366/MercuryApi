@@ -5,7 +5,6 @@ using MercuryApi.Data.Repository;
 using MercuryApi.Data.RequestModels;
 using MercuryApi.Data.Upserts;
 using MercuryApi.Helpers.Extensions;
-using System.Security.Claims;
 
 namespace MercuryApi.BLL
 {

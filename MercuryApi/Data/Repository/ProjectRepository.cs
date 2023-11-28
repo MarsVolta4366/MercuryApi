@@ -4,7 +4,7 @@ namespace MercuryApi.Data.Repository
 {
     public interface IProjectRepository
     {
-        Task<IEnumerable<Project>> GetProjectsByTeamId(int teamId, bool trackChanges);
+        Task<IEnumerable<Project>> GetProjectsByTeamId(int teamId, bool trackChanges = false);
         Task CreateProject(Project project);
         Task<Project?> GetProjectById(int projectId, bool trackChanges = false);
         void DeleteProject(Project project);
@@ -14,7 +14,7 @@ namespace MercuryApi.Data.Repository
     {
         public ProjectRepository(MercuryDbContext context) : base(context) { }
 
-        public async Task<IEnumerable<Project>> GetProjectsByTeamId(int teamId, bool trackChanges) =>
+        public async Task<IEnumerable<Project>> GetProjectsByTeamId(int teamId, bool trackChanges = false) =>
             await FindByCondition(project => project.TeamId.Equals(teamId), trackChanges).ToListAsync();
 
         public async Task CreateProject(Project project) =>
