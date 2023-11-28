@@ -17,6 +17,7 @@ builder.Services.AddDbContext<MercuryDbContext>(options => options.UseSqlServer(
 builder.Services.AddScoped<IRepositoryManager, RepositoryManager>();
 builder.Services.AddScoped<ITicketBusinessLogic, TicketBusinessLogic>();
 builder.Services.AddScoped<IUserBusinessLogic, UserBusinessLogic>();
+builder.Services.AddScoped<ITeamBusinessLogic, TeamBusinessLogic>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

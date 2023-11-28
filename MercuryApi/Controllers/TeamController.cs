@@ -1,147 +1,95 @@
-﻿using AutoMapper;
+﻿using MercuryApi.BLL;
 using MercuryApi.Data.Dtos;
-using MercuryApi.Data.Repository;
+using MercuryApi.Data.NonEntityDtos;
 using MercuryApi.Data.RequestModels;
 using MercuryApi.Data.Upserts;
-using MercuryApi.Helpers.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
 namespace MercuryApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TeamController : ControllerBase
     {
-        private readonly IRepositoryManager _repositoryManager;
-        private readonly IMapper _mapper;
+        private readonly ITeamBusinessLogic _teamBusinessLogic;
 
-        public TeamController(IRepositoryManager repositoryManager, IMapper mapper)
+        public TeamController(ITeamBusinessLogic teamBusinessLogic)
         {
-            _repositoryManager = repositoryManager;
-            _mapper = mapper;
+            _teamBusinessLogic = teamBusinessLogic;
         }
 
-        [HttpGet("get-current-users-teams"), Authorize]
+        [HttpGet("get-current-users-teams")]
         public async Task<ActionResult> GetCurrentUsersTeams()
         {
             string userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            List<Team> usersTeams = await _repositoryManager.Team.GetTeamsByUserId(int.Parse(userId));
-            List<TeamDto> response = _mapper.Map<List<TeamDto>>(usersTeams);
+            IEnumerable<TeamDto> response = await _teamBusinessLogic.GetUsersTeams(int.Parse(userId));
             return Ok(response);
         }
 
-        [HttpGet("get-team-by-id/{teamId}"), Authorize]
+        [HttpGet("get-team-by-id/{teamId}")]
         public async Task<ActionResult> GetTeamById([FromRoute] int teamId)
         {
-            Team? team = await _repositoryManager.Team.GetTeamById(teamId);
-            if (team == null) return NotFound("Team not found.");
+            TeamDto? response = await _teamBusinessLogic.GetTeamById(teamId);
+            if (response == null) return NotFound();
 
-            TeamDto response = _mapper.Map<TeamDto>(team);
             return Ok(response);
         }
 
         [HttpGet("check-if-team-name-exists/{teamName}")]
         public async Task<ActionResult> CheckIfTeamNameExists([FromRoute] string teamName)
         {
-            if (await _repositoryManager.Team.GetTeamByName(teamName) != null)
-            {
-                return Ok(new { exists = true });
-            }
-            return Ok(new { exists = false });
+            ExistsDto response = await _teamBusinessLogic.TeamNameExists(teamName);
+            return Ok(response);
         }
 
-        [HttpPost("create"), Authorize]
+        [HttpPost("create")]
         public async Task<ActionResult> CreateTeam([FromBody] TeamUpsert request)
         {
-            if (await _repositoryManager.Team.GetTeamByName(request.Name) != null)
-            {
-                return BadRequest($"Team name {request.Name} is already taken.");
-            }
-            List<int> userIds = request.Users.Select(user => user.Id).ToList();
-
             // Get the id of the user who's creating the team and add them to the team.
             string userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            userIds.Add(int.Parse(userId));
 
-            List<User> teamUsers = await _repositoryManager.User.GetUsersByIds(userIds, trackChanges: true);
-
-            Team team = _mapper.Map<Team>(request);
-            team.Users = teamUsers;
-            await _repositoryManager.Team.CreateTeam(team);
-            await _repositoryManager.SaveAsync();
-
-            TeamDto response = _mapper.Map<TeamDto>(team);
+            TeamDto? response = await _teamBusinessLogic.CreateTeam(request, int.Parse(userId));
+            if (response == null) return BadRequest($"Team name {request.Name} is already taken.");
             return Ok(response);
         }
 
-        [HttpPost("add-users-to-team"), Authorize]
+        [HttpPost("add-users-to-team")]
         public async Task<ActionResult> AddUsersToTeam([FromBody] TeamUpsert request)
         {
-            Team? team = await _repositoryManager.Team.GetTeamById(request.Id, true);
-            if (team == null) return BadRequest("Team not found.");
-
-            List<User> newUsers = await _repositoryManager.User.GetUsersByIds(request.Users.Select(user => user.Id), trackChanges: false);
-
-            foreach (User user in newUsers)
-            {
-                team.Users.Add(user);
-            }
-
-            await _repositoryManager.SaveAsync();
-            TeamDto response = _mapper.Map<TeamDto>(team);
+            TeamDto? response = await _teamBusinessLogic.AddUsersToTeam(request);
+            if (response == null) return NotFound("Team not found.");
 
             return Ok(response);
         }
 
-        [HttpPost("remove-user-from-team"), Authorize]
+        [HttpPost("remove-user-from-team")]
         public async Task<ActionResult> RemoveUserFromTeam([FromBody] RemoveUserFromTeamRequest request)
         {
-            Team? team = await _repositoryManager.Team.GetTeamById(request.TeamId, trackChanges: true);
-            if (team == null) return BadRequest("Team not found.");
-
-            User? userToRemove = team.Users.SingleOrDefault(x => x.Id == request.UserId);
-            if (userToRemove == null) return BadRequest("User not found in team users.");
-
-            // Unassign user from any tasks under the given team.
-            team.UnassignUser(request.UserId);
-
-            team.Users.Remove(userToRemove);
-            await _repositoryManager.SaveAsync();
-
-            TeamDto response = _mapper.Map<TeamDto>(team);
+            TeamDto? response = await _teamBusinessLogic.RemoveUserFromTeam(request);
+            if (response == null) return NotFound("Team not found.");
             return Ok(response);
         }
 
-        [HttpGet("user-is-in-team/{teamId}"), Authorize]
+        [HttpGet("user-is-in-team/{teamId}")]
         public async Task<ActionResult> UserIsInTeam([FromRoute] int teamId)
         {
             string userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            Team? team = await _repositoryManager.Team.GetTeamById(teamId);
-            if (team is null) return BadRequest("Team not found.");
+            TeamDto? response = await _teamBusinessLogic.UserIsInTeam(int.Parse(userId), teamId);
+            if (response == null) return Unauthorized();
 
-            // If the current user isn't in the given team, return unauthorized.
-            if (!team.Users.Select(x => x.Id).ToList().Contains(int.Parse(userId)))
-            {
-                return Unauthorized();
-            }
-
-            TeamDto response = _mapper.Map<TeamDto>(team);
             return Ok(response);
         }
 
         [HttpDelete("delete-team-by-id/{teamId}")]
         public async Task<ActionResult> DeleteTeamById([FromRoute] int teamId)
         {
-            Team? team = await _repositoryManager.Team.GetTeamById(teamId);
-            if (team is null) return BadRequest("Team not found.");
-
-            _repositoryManager.Team.DeleteTeam(team);
-            await _repositoryManager.SaveAsync();
+            string userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _teamBusinessLogic.DeleteTeamById(teamId, int.Parse(userId));
 
             return NoContent();
         }
