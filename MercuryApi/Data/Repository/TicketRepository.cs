@@ -6,6 +6,7 @@ namespace MercuryApi.Data.Repository
     {
         Task CreateTicket(Ticket ticket);
         Task<Ticket?> GetTicketById(int ticketId, bool trackChanges = false);
+        void DeleteTicket(Ticket ticket);
     }
 
     public class TicketRepository : RepositoryBase<Ticket>, ITicketRepository
@@ -19,5 +20,8 @@ namespace MercuryApi.Data.Repository
             await FindByCondition(ticket => ticket.Id == ticketId, trackChanges)
                 .Include(ticket => ticket.User)
                 .FirstOrDefaultAsync();
+
+        public void DeleteTicket(Ticket ticket) =>
+            Delete(ticket);
     }
 }

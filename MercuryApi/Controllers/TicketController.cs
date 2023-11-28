@@ -1,12 +1,14 @@
 ﻿using MercuryApi.BLL;
 using MercuryApi.Data.Dtos;
 using MercuryApi.Data.Upserts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MercuryApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TicketController : ControllerBase
     {
         private readonly ITicketBusinessLogic _ticketBusinessLogic;
@@ -39,6 +41,13 @@ namespace MercuryApi.Controllers
 
             if (response == null) return NotFound();
             return Ok(response);
+        }
+
+        [HttpDelete("{ticketId}")]
+        public async Task<ActionResult> DeleteTicketById([FromRoute] int ticketId)
+        {
+            await _ticketBusinessLogic.DeleteTicketById(ticketId);
+            return NoContent();
         }
     }
 }

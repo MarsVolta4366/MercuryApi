@@ -10,6 +10,7 @@ namespace MercuryApi.BLL
         Task<TicketDto?> GetTicketById(int ticketId);
         Task<TicketDto> CreateTicket(TicketUpsert request);
         Task<TicketDto?> UpdateTicket(TicketUpsert request);
+        Task DeleteTicketById(int ticketId);
     }
 
     public class TicketBusinessLogic : BusinessLogicBase, ITicketBusinessLogic
@@ -54,6 +55,15 @@ namespace MercuryApi.BLL
             }
 
             return _mapper.Map<TicketDto>(ticket);
+        }
+
+        public async Task DeleteTicketById(int ticketId)
+        {
+            Ticket? ticket = await _repositoryManager.Ticket.GetTicketById(ticketId);
+            if (ticket == null) return;
+
+            _repositoryManager.Ticket.DeleteTicket(ticket);
+            await _repositoryManager.SaveAsync();
         }
     }
 }
