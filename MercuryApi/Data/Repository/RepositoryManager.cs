@@ -6,6 +6,7 @@
         ITeamRepository Team { get; }
         IProjectRepository Project { get; }
         ITicketRepository Ticket { get; }
+        IStatusRepository Status { get; }
         Task SaveAsync();
     }
 
@@ -16,6 +17,7 @@
         private ITeamRepository? _teamRepository;
         private IProjectRepository? _projectRepository;
         private ITicketRepository? _ticketRepository;
+        private IStatusRepository? _statusRepository;
 
         public RepositoryManager(MercuryDbContext context)
         {
@@ -55,6 +57,15 @@
             {
                 _ticketRepository ??= new TicketRepository(_context);
                 return _ticketRepository;
+            }
+        }
+
+        public IStatusRepository Status
+        {
+            get
+            {
+                _statusRepository ??= new StatusRepository(_context);
+                return _statusRepository;
             }
         }
 

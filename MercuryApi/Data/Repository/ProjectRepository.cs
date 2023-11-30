@@ -24,6 +24,8 @@ namespace MercuryApi.Data.Repository
             await FindByCondition(project => project.Id == projectId, trackChanges)
                 .Include(project => project.Tickets)
                     .ThenInclude(ticket => ticket.User)
+                .Include(project => project.Tickets)
+                    .ThenInclude(ticket => ticket.Status)
                 .FirstOrDefaultAsync();
 
         public void DeleteProject(Project project) =>

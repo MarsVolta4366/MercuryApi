@@ -8,9 +8,13 @@
 
         public int? UserId { get; set; }
 
+        public int StatusId { get; set; }
+
         public string Title { get; set; } = null!;
 
         public string? Content { get; set; }
+
+        public StatusDto Status { get; set; } = null!;
 
         public UserDto? User { get; set; }
     }

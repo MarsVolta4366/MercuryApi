@@ -18,6 +18,8 @@ public partial class MercuryDbContext : DbContext
 
     public virtual DbSet<Project> Projects { get; set; }
 
+    public virtual DbSet<Status> Statuses { get; set; }
+
     public virtual DbSet<Team> Teams { get; set; }
 
     public virtual DbSet<Ticket> Tickets { get; set; }
@@ -44,6 +46,18 @@ public partial class MercuryDbContext : DbContext
                 .HasConstraintName("FK__Project__TeamId__47DBAE45");
         });
 
+        modelBuilder.Entity<Status>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC07321A77A0");
+
+            entity.ToTable("Status");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Title)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+        });
+
         modelBuilder.Entity<Team>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Team__3214EC079A3A0FF5");
@@ -57,7 +71,7 @@ public partial class MercuryDbContext : DbContext
 
         modelBuilder.Entity<Ticket>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Ticket__3214EC07099210D3");
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC07F722F3EA");
 
             entity.ToTable("Ticket");
 
@@ -70,12 +84,16 @@ public partial class MercuryDbContext : DbContext
 
             entity.HasOne(d => d.Project).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.ProjectId)
-                .HasConstraintName("FK__Ticket__ProjectI__4CA06362");
+                .HasConstraintName("FK__Ticket__ProjectI__52593CB8");
+
+            entity.HasOne(d => d.Status).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.StatusId)
+                .HasConstraintName("FK__Ticket__StatusId__5812160E");
 
             entity.HasOne(d => d.User).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__Ticket__UserId__4D94879B");
+                .HasConstraintName("FK__Ticket__UserId__534D60F1");
         });
 
         modelBuilder.Entity<User>(entity =>
