@@ -28,6 +28,8 @@ namespace MercuryApi.Data.Repository
         public async Task<List<Team>> GetTeamsByUserId(int userId, bool trackChanges = false) =>
             await FindByCondition(team => team.Users.Select(user => user.Id).Contains(userId), trackChanges)
                 .Include(team => team.Projects)
+                    .ThenInclude(project => project.Tickets)
+                        .ThenInclude(ticket => ticket.Status)
                 .Include(team => team.Users).ToListAsync();
 
         public async Task CreateTeam(Team team) =>
