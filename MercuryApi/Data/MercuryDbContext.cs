@@ -76,7 +76,7 @@ public partial class MercuryDbContext : DbContext
             entity.ToTable("Ticket");
 
             entity.Property(e => e.Content)
-                .HasMaxLength(200)
+                .HasMaxLength(1000)
                 .IsUnicode(false);
             entity.Property(e => e.Title)
                 .HasMaxLength(100)
