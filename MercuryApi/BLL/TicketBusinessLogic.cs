@@ -54,6 +54,9 @@ namespace MercuryApi.BLL
                 ticket.User = user;
             }
 
+            Status? status = await _repositoryManager.Status.GetStatusById(request.StatusId) ?? throw new Exception("Bad status.");
+            ticket.Status = status;
+
             return _mapper.Map<TicketDto>(ticket);
         }
 
