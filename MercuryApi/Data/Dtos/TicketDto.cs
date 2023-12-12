@@ -14,6 +14,8 @@
 
         public string? Content { get; set; }
 
+        public int? Points { get; set; }
+
         public StatusDto Status { get; set; } = null!;
 
         public UserDto? User { get; set; }

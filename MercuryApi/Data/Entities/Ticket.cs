@@ -17,6 +17,8 @@ public partial class Ticket
 
     public string? Content { get; set; }
 
+    public int? Points { get; set; }
+
     public virtual Project Project { get; set; } = null!;
 
     public virtual Status Status { get; set; } = null!;
