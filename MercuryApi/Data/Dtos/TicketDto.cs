@@ -12,6 +12,8 @@
 
         public int? SprintId { get; set; }
 
+        public string SprintName { get; set; } = null!;
+
         public string Title { get; set; } = null!;
 
         public string? Content { get; set; }

@@ -30,14 +30,7 @@ namespace MercuryApi.BLL
             await _repositoryManager.Ticket.CreateTicket(ticket);
             await _repositoryManager.SaveAsync();
 
-            if (request.UserId is int userId)
-            {
-                User? user = await _repositoryManager.User.GetUserById(userId);
-                ticket.User = user;
-            }
-
-            Status? status = await _repositoryManager.Status.GetStatusById(request.StatusId) ?? throw new Exception("Bad status.");
-            ticket.Status = status;
+            await IncludeChildren(ticket);
 
             return _mapper.Map<TicketDto>(ticket);
         }
@@ -51,14 +44,7 @@ namespace MercuryApi.BLL
             _mapper.Map(request, ticket);
             await _repositoryManager.SaveAsync();
 
-            if (request.UserId is int userId)
-            {
-                User? user = await _repositoryManager.User.GetUserById(userId);
-                ticket.User = user;
-            }
-
-            Status? status = await _repositoryManager.Status.GetStatusById(request.StatusId) ?? throw new Exception("Bad status.");
-            ticket.Status = status;
+            await IncludeChildren(ticket);
 
             return _mapper.Map<TicketDto>(ticket);
         }
@@ -70,6 +56,31 @@ namespace MercuryApi.BLL
 
             _repositoryManager.Ticket.DeleteTicket(ticket);
             await _repositoryManager.SaveAsync();
+        }
+
+        /// <summary>
+        /// Attaches user, status, and sprint to a given ticket.
+        /// </summary>
+        /// <param name="ticket"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private async Task IncludeChildren(Ticket ticket)
+        {
+            if (ticket.UserId is int userId)
+            {
+                User? user = await _repositoryManager.User.GetUserById(userId);
+                ticket.User = user;
+            }
+
+            Status status = await _repositoryManager.Status.GetStatusById(ticket.StatusId) ?? throw new Exception("Invalid status id.");
+            ticket.Status = status;
+
+            // Attaching sprint so that sprint name maps to ticket dto.
+            if (ticket.SprintId is int sprintId)
+            {
+                Sprint? sprint = await _repositoryManager.Sprint.GetSprintById(sprintId);
+                ticket.Sprint = sprint;
+            }
         }
     }
 }
