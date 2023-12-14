@@ -1,14 +1,16 @@
 ﻿namespace MercuryApi.Data.Dtos
 {
-    public class ProjectDto
+    public class SprintDto
     {
         public int Id { get; set; }
 
-        public int TeamId { get; set; }
-
         public string Name { get; set; } = null!;
 
-        public ICollection<SprintDto> Sprints { get; set; } = new List<SprintDto>();
+        public DateTime StartDate { get; set; }
+
+        public DateTime EndDate { get; set; }
+
+        public int ProjectId { get; set; }
 
         public virtual ICollection<TicketDto> Tickets { get; set; } = new List<TicketDto>();
     }

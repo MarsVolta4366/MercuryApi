@@ -13,6 +13,8 @@ public partial class Ticket
 
     public int StatusId { get; set; }
 
+    public int? SprintId { get; set; }
+
     public string Title { get; set; } = null!;
 
     public string? Content { get; set; }
@@ -20,6 +22,8 @@ public partial class Ticket
     public int? Points { get; set; }
 
     public virtual Project Project { get; set; } = null!;
+
+    public virtual Sprint? Sprint { get; set; }
 
     public virtual Status Status { get; set; } = null!;
 

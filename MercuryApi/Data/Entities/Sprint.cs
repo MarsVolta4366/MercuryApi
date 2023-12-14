@@ -3,17 +3,19 @@ using System.Collections.Generic;
 
 namespace MercuryApi.Data.Entities;
 
-public partial class Project
+public partial class Sprint
 {
     public int Id { get; set; }
 
-    public int TeamId { get; set; }
-
     public string Name { get; set; } = null!;
 
-    public virtual ICollection<Sprint> Sprints { get; set; } = new List<Sprint>();
+    public DateTime StartDate { get; set; }
 
-    public virtual Team Team { get; set; } = null!;
+    public DateTime EndDate { get; set; }
+
+    public int ProjectId { get; set; }
+
+    public virtual Project Project { get; set; } = null!;
 
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

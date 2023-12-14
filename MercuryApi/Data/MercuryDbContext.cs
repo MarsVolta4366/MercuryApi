@@ -18,6 +18,8 @@ public partial class MercuryDbContext : DbContext
 
     public virtual DbSet<Project> Projects { get; set; }
 
+    public virtual DbSet<Sprint> Sprints { get; set; }
+
     public virtual DbSet<Status> Statuses { get; set; }
 
     public virtual DbSet<Team> Teams { get; set; }
@@ -46,6 +48,23 @@ public partial class MercuryDbContext : DbContext
                 .HasConstraintName("FK__Project__TeamId__47DBAE45");
         });
 
+        modelBuilder.Entity<Sprint>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Sprint__3214EC07F4F79125");
+
+            entity.ToTable("Sprint");
+
+            entity.Property(e => e.EndDate).HasColumnType("date");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.StartDate).HasColumnType("date");
+
+            entity.HasOne(d => d.Project).WithMany(p => p.Sprints)
+                .HasForeignKey(d => d.ProjectId)
+                .HasConstraintName("FK__Sprint__ProjectI__6FE99F9F");
+        });
+
         modelBuilder.Entity<Status>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC07321A77A0");
@@ -71,7 +90,7 @@ public partial class MercuryDbContext : DbContext
 
         modelBuilder.Entity<Ticket>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC07F722F3EA");
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC0793844A67");
 
             entity.ToTable("Ticket");
 
@@ -84,16 +103,20 @@ public partial class MercuryDbContext : DbContext
 
             entity.HasOne(d => d.Project).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.ProjectId)
-                .HasConstraintName("FK__Ticket__ProjectI__52593CB8");
+                .HasConstraintName("FK__Ticket__ProjectI__693CA210");
+
+            entity.HasOne(d => d.Sprint).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.SprintId)
+                .HasConstraintName("FK__Ticket__SprintId__70DDC3D8");
 
             entity.HasOne(d => d.Status).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.StatusId)
-                .HasConstraintName("FK__Ticket__StatusId__5812160E");
+                .HasConstraintName("FK__Ticket__StatusId__6B24EA82");
 
             entity.HasOne(d => d.User).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__Ticket__UserId__534D60F1");
+                .HasConstraintName("FK__Ticket__UserId__6A30C649");
         });
 
         modelBuilder.Entity<User>(entity =>
