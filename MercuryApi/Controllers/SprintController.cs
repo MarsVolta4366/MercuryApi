@@ -24,5 +24,12 @@ namespace MercuryApi.Controllers
             SprintDto response = await _sprintBusinessLogic.CreateSprint(request);
             return Ok(response);
         }
+
+        [HttpDelete("{sprintId}")]
+        public async Task<ActionResult> DeleteSprint([FromRoute] int sprintId)
+        {
+            await _sprintBusinessLogic.DeleteSprint(sprintId);
+            return NoContent();
+        }
     }
 }

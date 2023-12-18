@@ -7,6 +7,8 @@ namespace MercuryApi.Data.Repository
         Task CreateSprint(Sprint sprint);
 
         Task<Sprint?> GetSprintById(int sprintId, bool trackChanges = false);
+
+        void DeleteSprint(Sprint sprint);
     }
 
     public class SprintRepository : RepositoryBase<Sprint>, ISprintRepository
@@ -17,6 +19,11 @@ namespace MercuryApi.Data.Repository
             await Create(sprint);
 
         public async Task<Sprint?> GetSprintById(int sprintId, bool trackChanges = false) =>
-            await FindByCondition(sprint => sprint.Id == sprintId, trackChanges).FirstOrDefaultAsync();
+            await FindByCondition(sprint => sprint.Id == sprintId, trackChanges)
+                .Include(sprint => sprint.Tickets)
+                .FirstOrDefaultAsync();
+
+        public void DeleteSprint(Sprint sprint) =>
+            Delete(sprint);
     }
 }

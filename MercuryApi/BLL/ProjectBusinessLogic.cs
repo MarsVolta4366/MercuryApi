@@ -52,7 +52,7 @@ namespace MercuryApi.BLL
 
         public async Task DeleteProjectById(int projectId)
         {
-            Project? project = await _repositoryManager.Project.GetProjectById(projectId);
+            Project? project = await _repositoryManager.Project.GetProjectById(projectId, trackChanges: true);
             if (project == null) return;
 
             _repositoryManager.Project.DeleteProject(project);
