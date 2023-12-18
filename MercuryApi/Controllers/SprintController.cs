@@ -31,5 +31,13 @@ namespace MercuryApi.Controllers
             await _sprintBusinessLogic.DeleteSprint(sprintId);
             return NoContent();
         }
+
+        [HttpPut]
+        public async Task<ActionResult> UpdateSprint([FromBody] SprintUpsert request)
+        {
+            SprintDto? response = await _sprintBusinessLogic.UpdateSprint(request);
+
+            return response != null ? Ok(response) : NotFound();
+        }
     }
 }

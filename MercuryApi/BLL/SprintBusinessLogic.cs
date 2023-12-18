@@ -9,6 +9,7 @@ namespace MercuryApi.BLL
     {
         Task<SprintDto> CreateSprint(SprintUpsert request);
         Task DeleteSprint(int sprintId);
+        Task<SprintDto?> UpdateSprint(SprintUpsert request);
     }
 
     public class SprintBusinessLogic : BusinessLogicBase, ISprintBusinessLogic
@@ -35,6 +36,18 @@ namespace MercuryApi.BLL
             }
             _repositoryManager.Sprint.DeleteSprint(sprint);
             await _repositoryManager.SaveAsync();
+        }
+
+        public async Task<SprintDto?> UpdateSprint(SprintUpsert request)
+        {
+            Sprint? sprint = await _repositoryManager.Sprint.GetSprintById(request.Id, trackChanges: true);
+            if (sprint == null) return null;
+
+            // Map the update request over the entity to update fields.
+            _mapper.Map(request, sprint);
+            await _repositoryManager.SaveAsync();
+
+            return _mapper.Map<SprintDto>(sprint);
         }
     }
 }
