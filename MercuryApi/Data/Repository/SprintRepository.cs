@@ -20,6 +20,8 @@ namespace MercuryApi.Data.Repository
 
         public async Task<Sprint?> GetSprintById(int sprintId, bool trackChanges = false) =>
             await FindByCondition(sprint => sprint.Id == sprintId, trackChanges)
+                // Joining tickets because on delete needs to null out the tickets FK sprint id.
+                // The tickets that are displayed on the frontend are ProjectDto.Tickets.
                 .Include(sprint => sprint.Tickets)
                 .FirstOrDefaultAsync();
 
