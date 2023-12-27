@@ -37,6 +37,9 @@ namespace MercuryApi.Data.Repository
                     .ThenInclude(ticket => ticket.Status)
                 .Include(project => project.Tickets)
                     .ThenInclude(ticket => ticket.Sprint)
+                .Include(project => project.Tickets)
+                    .ThenInclude(ticket => ticket.Comments)
+                        .ThenInclude(comment => comment.User)
                 .FirstOrDefaultAsync();
 
         public void DeleteProject(Project project) =>

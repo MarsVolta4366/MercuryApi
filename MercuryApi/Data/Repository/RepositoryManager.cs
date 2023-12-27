@@ -8,6 +8,7 @@
         ITicketRepository Ticket { get; }
         IStatusRepository Status { get; }
         ISprintRepository Sprint { get; }
+        ICommentRepository Comment { get; }
         Task SaveAsync();
     }
 
@@ -20,6 +21,7 @@
         private ITicketRepository? _ticketRepository;
         private IStatusRepository? _statusRepository;
         private ISprintRepository? _sprintRepository;
+        private ICommentRepository? _commentRepository;
 
         public RepositoryManager(MercuryDbContext context)
         {
@@ -77,6 +79,15 @@
             {
                 _sprintRepository ??= new SprintRepository(_context);
                 return _sprintRepository;
+            }
+        }
+
+        public ICommentRepository Comment
+        {
+            get
+            {
+                _commentRepository ??= new CommentRepository(_context);
+                return _commentRepository;
             }
         }
 

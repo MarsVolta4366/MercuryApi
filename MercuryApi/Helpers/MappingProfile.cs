@@ -31,6 +31,10 @@ namespace MercuryApi.Helpers
             // Sprint entity mappings.
             CreateMap<SprintUpsert, Sprint>();
             CreateMap<Sprint, SprintDto>();
+
+            // Comment entity mappings.
+            CreateMap<CommentUpsert, Comment>();
+            CreateMap<Comment, CommentDto>();
         }
     }
 }

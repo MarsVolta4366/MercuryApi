@@ -16,6 +16,10 @@ public partial class MercuryDbContext : DbContext
     {
     }
 
+    public virtual DbSet<Backlog> Backlogs { get; set; }
+
+    public virtual DbSet<Comment> Comments { get; set; }
+
     public virtual DbSet<Project> Projects { get; set; }
 
     public virtual DbSet<Sprint> Sprints { get; set; }
@@ -33,6 +37,35 @@ public partial class MercuryDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Backlog>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Backlog__3214EC07542B244D");
+
+            entity.ToTable("Backlog");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+
+        modelBuilder.Entity<Comment>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Comment__3214EC07B3BFCADE");
+
+            entity.ToTable("Comment");
+
+            entity.Property(e => e.Content)
+                .HasMaxLength(1000)
+                .IsUnicode(false);
+            entity.Property(e => e.Date).HasColumnType("date");
+
+            entity.HasOne(d => d.Ticket).WithMany(p => p.Comments)
+                .HasForeignKey(d => d.TicketId)
+                .HasConstraintName("FK__Comment__TicketI__160F4887");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Comments)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK__Comment__UserId__17036CC0");
+        });
+
         modelBuilder.Entity<Project>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Project__3214EC0742969F99");
@@ -62,7 +95,7 @@ public partial class MercuryDbContext : DbContext
 
             entity.HasOne(d => d.Project).WithMany(p => p.Sprints)
                 .HasForeignKey(d => d.ProjectId)
-                .HasConstraintName("FK__Sprint__ProjectI__6FE99F9F");
+                .HasConstraintName("FK__Sprint__ProjectI__06CD04F7");
         });
 
         modelBuilder.Entity<Status>(entity =>
@@ -103,20 +136,20 @@ public partial class MercuryDbContext : DbContext
 
             entity.HasOne(d => d.Project).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.ProjectId)
-                .HasConstraintName("FK__Ticket__ProjectI__693CA210");
+                .HasConstraintName("FK__Ticket__ProjectI__7E37BEF6");
 
             entity.HasOne(d => d.Sprint).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.SprintId)
-                .HasConstraintName("FK__Ticket__SprintId__70DDC3D8");
+                .HasConstraintName("FK__Ticket__SprintId__08B54D69");
 
             entity.HasOne(d => d.Status).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.StatusId)
-                .HasConstraintName("FK__Ticket__StatusId__6B24EA82");
+                .HasConstraintName("FK__Ticket__StatusId__01142BA1");
 
             entity.HasOne(d => d.User).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__Ticket__UserId__6A30C649");
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK__Ticket__UserId__76969D2E");
         });
 
         modelBuilder.Entity<User>(entity =>

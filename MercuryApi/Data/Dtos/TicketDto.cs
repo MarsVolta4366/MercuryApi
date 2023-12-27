@@ -20,6 +20,8 @@
 
         public int? Points { get; set; }
 
+        public ICollection<CommentDto> Comments { get; set; } = new List<CommentDto>();
+
         public StatusDto Status { get; set; } = null!;
 
         public UserDto? User { get; set; }
