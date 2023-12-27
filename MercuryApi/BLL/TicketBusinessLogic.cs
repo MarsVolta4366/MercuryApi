@@ -66,12 +66,14 @@ namespace MercuryApi.BLL
         /// <exception cref="Exception"></exception>
         private async Task IncludeChildren(Ticket ticket)
         {
+            // Attach user.
             if (ticket.UserId is int userId)
             {
                 User? user = await _repositoryManager.User.GetUserById(userId);
                 ticket.User = user;
             }
 
+            // Attach status.
             Status status = await _repositoryManager.Status.GetStatusById(ticket.StatusId) ?? throw new Exception("Invalid status id.");
             ticket.Status = status;
 
