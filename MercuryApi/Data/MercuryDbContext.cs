@@ -16,8 +16,6 @@ public partial class MercuryDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Backlog> Backlogs { get; set; }
-
     public virtual DbSet<Comment> Comments { get; set; }
 
     public virtual DbSet<Project> Projects { get; set; }
@@ -37,15 +35,6 @@ public partial class MercuryDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Backlog>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Backlog__3214EC07542B244D");
-
-            entity.ToTable("Backlog");
-
-            entity.Property(e => e.Id).ValueGeneratedNever();
-        });
-
         modelBuilder.Entity<Comment>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Comment__3214EC07B3BFCADE");
