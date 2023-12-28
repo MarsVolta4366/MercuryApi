@@ -26,5 +26,14 @@ namespace MercuryApi.Controllers
             CommentDto response = await _commentBusinessLogic.CreateComment(request);
             return Ok(response);
         }
+
+        [HttpDelete("{commentId}")]
+        public async Task<ActionResult> DeleteComment([FromRoute] int commentId)
+        {
+            int userId = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+            await _commentBusinessLogic.DeleteComment(commentId, userId);
+
+            return NoContent();
+        }
     }
 }

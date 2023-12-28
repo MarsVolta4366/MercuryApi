@@ -8,6 +8,7 @@ namespace MercuryApi.BLL
     public interface ICommentBusinessLogic
     {
         Task<CommentDto> CreateComment(CommentUpsert request);
+        Task DeleteComment(int commentId, int userId);
     }
 
     public class CommentBusinessLogic : BusinessLogicBase, ICommentBusinessLogic
@@ -24,6 +25,16 @@ namespace MercuryApi.BLL
             comment.User = await _repositoryManager.User.GetUserById(request.UserId) ?? throw new Exception("User not found.");
 
             return _mapper.Map<CommentDto>(comment);
+        }
+
+        public async Task DeleteComment(int commentId, int userId)
+        {
+            Comment? comment = await _repositoryManager.Comment.GetCommentById(commentId);
+            if (comment == null) return;
+            if (comment.User.Id != userId) return;
+
+            _repositoryManager.Comment.DeleteComment(comment);
+            await _repositoryManager.SaveAsync();
         }
     }
 }
