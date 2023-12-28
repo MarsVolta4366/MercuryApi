@@ -8,6 +8,7 @@ namespace MercuryApi.BLL
     public interface ICommentBusinessLogic
     {
         Task<CommentDto> CreateComment(CommentUpsert request);
+        Task<CommentDto?> UpdateComment(CommentUpsert request, int userId);
         Task DeleteComment(int commentId, int userId);
     }
 
@@ -23,6 +24,19 @@ namespace MercuryApi.BLL
             await _repositoryManager.SaveAsync();
 
             comment.User = await _repositoryManager.User.GetUserById(request.UserId) ?? throw new Exception("User not found.");
+
+            return _mapper.Map<CommentDto>(comment);
+        }
+
+        public async Task<CommentDto?> UpdateComment(CommentUpsert request, int userId)
+        {
+            Comment? comment = await _repositoryManager.Comment.GetCommentById(request.Id, trackChanges: true);
+            if (comment == null || comment.User.Id != userId) return null;
+
+            // Map the update request over the entity to update fields.
+            _mapper.Map(request, comment);
+            comment.Date = DateTime.Now.Date;
+            await _repositoryManager.SaveAsync();
 
             return _mapper.Map<CommentDto>(comment);
         }

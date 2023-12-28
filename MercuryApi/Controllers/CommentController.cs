@@ -27,6 +27,16 @@ namespace MercuryApi.Controllers
             return Ok(response);
         }
 
+        [HttpPut]
+        public async Task<ActionResult> UpdateComment([FromBody] CommentUpsert request)
+        {
+            int userId = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CommentDto? response = await _commentBusinessLogic.UpdateComment(request, userId);
+
+            if (response == null) return NotFound();
+            return Ok(response);
+        }
+
         [HttpDelete("{commentId}")]
         public async Task<ActionResult> DeleteComment([FromRoute] int commentId)
         {
