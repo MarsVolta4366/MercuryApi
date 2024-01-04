@@ -23,7 +23,7 @@ namespace MercuryApi.Data.Repository
         public async Task<Project?> GetProjectById(int projectId, bool trackChanges = false) =>
             await FindByCondition(project => project.Id == projectId, trackChanges)
                 .Include(project => project.Sprints)
-                    .ThenInclude(sprint => sprint.Tickets)
+                    .ThenInclude(sprint => sprint.Tickets.OrderBy(ticket => ticket.Order))
                         .ThenInclude(ticket => ticket.User)
                 .Include(project => project.Sprints)
                     .ThenInclude(sprint => sprint.Tickets)
@@ -33,12 +33,12 @@ namespace MercuryApi.Data.Repository
                         .ThenInclude(ticket => ticket.Comments)
                             .ThenInclude(comment => comment.User)
 
-                // Only include tickets that aren't in a sprint (backlog tickets).
-                .Include(project => project.Tickets.Where(ticket => ticket.SprintId == null))
+                // Project.Tickets, only include tickets that aren't in a sprint (backlog tickets).
+                .Include(project => project.Tickets.Where(ticket => ticket.SprintId == null).OrderBy(ticket => ticket.Order))
                     .ThenInclude(ticket => ticket.User)
-                .Include(project => project.Tickets.Where(ticket => ticket.SprintId == null))
+                .Include(project => project.Tickets)
                     .ThenInclude(ticket => ticket.Status)
-                .Include(project => project.Tickets.Where(ticket => ticket.SprintId == null))
+                .Include(project => project.Tickets)
                     .ThenInclude(ticket => ticket.Comments)
                         .ThenInclude(comment => comment.User)
                 .FirstOrDefaultAsync();
