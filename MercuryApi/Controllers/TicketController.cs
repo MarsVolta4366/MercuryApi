@@ -46,7 +46,7 @@ namespace MercuryApi.Controllers
         [HttpDelete("{ticketId}")]
         public async Task<ActionResult> DeleteTicketById([FromRoute] int ticketId)
         {
-            // TODO: Need stored pocedure or something to update ticket orders when a ticket gets deleted.
+            // Ticket table has after delete trigger to handle updating order of other tickets in sprint.
             await _ticketBusinessLogic.DeleteTicketById(ticketId);
             return NoContent();
         }

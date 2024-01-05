@@ -2,7 +2,6 @@
 using MercuryApi.Data.Dtos;
 using MercuryApi.Data.Repository;
 using MercuryApi.Data.Upserts;
-using Microsoft.Data.SqlClient;
 
 namespace MercuryApi.BLL
 {
@@ -30,7 +29,6 @@ namespace MercuryApi.BLL
         {
             Ticket ticket = _mapper.Map<Ticket>(request);
 
-            // TODO: Try to make this set order logic a trigger in the database.
             List<Ticket> sprintTickets = await _repositoryManager.Ticket.GetTicketsBySprintId(request.SprintId);
             sprintTickets = sprintTickets.OrderBy(x => x.Order).ToList();
             ticket.Order = sprintTickets.Count > 0 ? sprintTickets.Last().Order + 1 : 0;
@@ -77,6 +75,8 @@ namespace MercuryApi.BLL
         {
             Ticket? ticket = await _repositoryManager.Ticket.UpdateTicketOrderAndSprint(request);
             if (ticket == null) return null;
+
+            // TODO: Need to include ticket comments.
 
             await IncludeChildren(ticket);
 

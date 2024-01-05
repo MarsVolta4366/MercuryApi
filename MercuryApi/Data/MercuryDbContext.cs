@@ -114,7 +114,7 @@ public partial class MercuryDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC0793844A67");
 
-            entity.ToTable("Ticket");
+            entity.ToTable("Ticket", tb => tb.HasTrigger("AfterDeleteTicket"));
 
             entity.Property(e => e.Content)
                 .HasMaxLength(1000)
