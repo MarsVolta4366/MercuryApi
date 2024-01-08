@@ -27,7 +27,7 @@ namespace MercuryApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateTicket([FromBody] TicketUpsert request)
+        public async Task<ActionResult> CreateTicket([FromBody] TicketCreate request)
         {
             TicketDto response = await _ticketBusinessLogic.CreateTicket(request);
 
@@ -35,7 +35,7 @@ namespace MercuryApi.Controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult> UpdateTicket([FromBody] TicketUpsert request)
+        public async Task<ActionResult> UpdateTicket([FromBody] TicketUpdate request)
         {
             TicketDto? response = await _ticketBusinessLogic.UpdateTicket(request);
 

@@ -22,7 +22,8 @@ namespace MercuryApi.Helpers
             CreateMap<Project, ProjectDto>();
 
             // Ticket entity mappings.
-            CreateMap<TicketUpsert, Ticket>();
+            CreateMap<TicketCreate, Ticket>();
+            CreateMap<TicketUpdate, Ticket>();
             CreateMap<Ticket, TicketDto>();
 
             // Status entity mappings.
