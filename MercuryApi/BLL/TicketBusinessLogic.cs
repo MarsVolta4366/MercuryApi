@@ -8,9 +8,11 @@ namespace MercuryApi.BLL
     public interface ITicketBusinessLogic
     {
         Task<TicketDto?> GetTicketById(int ticketId);
-        Task<TicketDto> CreateTicket(TicketUpsert request);
-        Task<TicketDto?> UpdateTicket(TicketUpsert request);
+        Task<TicketDto> CreateTicket(TicketCreate request);
+        Task<TicketDto?> UpdateTicket(TicketUpdate request);
         Task DeleteTicketById(int ticketId);
+        Task<TicketDto?> UpdateTicketOrder(TicketOrderUpsert request);
+        Task<TicketDto?> UpdateTicketOrderAndSprint(TicketOrderAndSprintUpsert request);
     }
 
     public class TicketBusinessLogic : BusinessLogicBase, ITicketBusinessLogic
@@ -19,38 +21,47 @@ namespace MercuryApi.BLL
 
         public async Task<TicketDto?> GetTicketById(int ticketId)
         {
-            Ticket? ticket = await _repositoryManager.Ticket.GetTicketById(ticketId);
+            Ticket? ticket = await _repositoryManager.Ticket.GetTicketWithChildrenById(ticketId);
             return _mapper.Map<TicketDto>(ticket);
         }
 
-        public async Task<TicketDto> CreateTicket(TicketUpsert request)
+        public async Task<TicketDto> CreateTicket(TicketCreate request)
         {
             Ticket ticket = _mapper.Map<Ticket>(request);
+
+            ticket.Order = await GetTicketOrder(ticket.ProjectId, request.SprintId);
 
             await _repositoryManager.Ticket.CreateTicket(ticket);
             await _repositoryManager.SaveAsync();
 
-            await IncludeChildren(ticket);
-
-            return _mapper.Map<TicketDto>(ticket);
+            Ticket? createdTicket = await _repositoryManager.Ticket.GetTicketWithChildrenById(ticket.Id);
+            return _mapper.Map<TicketDto>(createdTicket);
         }
 
-        public async Task<TicketDto?> UpdateTicket(TicketUpsert request)
+        public async Task<TicketDto?> UpdateTicket(TicketUpdate request)
         {
-            Ticket? ticket = await _repositoryManager.Ticket.GetTicketById(request.Id, trackChanges: true);
+            Ticket? ticket = await _repositoryManager.Ticket.GetTicketWithChildrenById(request.Id, trackChanges: true);
             if (ticket == null) return null;
+
+            // If ticket is changing sprints, set ticket order to last.
+            if (request.SprintId != ticket.SprintId)
+            {
+                ticket.Order = await GetTicketOrder(ticket.ProjectId, request.SprintId);
+            }
 
             // Map the update request over the entity to update fields.
             _mapper.Map(request, ticket);
             await _repositoryManager.SaveAsync();
 
-            await IncludeChildren(ticket);
+            Ticket? updatedTicket = await _repositoryManager.Ticket.GetTicketWithChildrenById(request.Id);
 
-            return _mapper.Map<TicketDto>(ticket);
+            return _mapper.Map<TicketDto>(updatedTicket);
         }
 
         public async Task DeleteTicketById(int ticketId)
         {
+            // GetTicketById doesn't include children, need it this way for delete because if multiple comments are included
+            // by the same user, an exception gets thrown that you can't track two instances of the same entity on delete.
             Ticket? ticket = await _repositoryManager.Ticket.GetTicketById(ticketId);
             if (ticket == null) return;
 
@@ -58,31 +69,27 @@ namespace MercuryApi.BLL
             await _repositoryManager.SaveAsync();
         }
 
-        /// <summary>
-        /// Attaches user, status, and sprint to a given ticket.
-        /// </summary>
-        /// <param name="ticket"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        private async Task IncludeChildren(Ticket ticket)
+        public async Task<TicketDto?> UpdateTicketOrder(TicketOrderUpsert request)
         {
-            // Attach user.
-            if (ticket.UserId is int userId)
-            {
-                User? user = await _repositoryManager.User.GetUserById(userId);
-                ticket.User = user;
-            }
+            Ticket? ticket = await _repositoryManager.Ticket.UpdateTicketOrder(request);
 
-            // Attach status.
-            Status status = await _repositoryManager.Status.GetStatusById(ticket.StatusId) ?? throw new Exception("Invalid status id.");
-            ticket.Status = status;
+            return _mapper.Map<TicketDto>(ticket);
+        }
 
-            // Attaching sprint so that sprint name maps to ticket dto.
-            if (ticket.SprintId is int sprintId)
-            {
-                Sprint? sprint = await _repositoryManager.Sprint.GetSprintById(sprintId);
-                ticket.Sprint = sprint;
-            }
+        public async Task<TicketDto?> UpdateTicketOrderAndSprint(TicketOrderAndSprintUpsert request)
+        {
+            await _repositoryManager.Ticket.UpdateTicketOrderAndSprint(request);
+
+            Ticket? ticket = await _repositoryManager.Ticket.GetTicketWithChildrenById(request.TicketId);
+
+            return _mapper.Map<TicketDto>(ticket);
+        }
+
+        private async Task<int> GetTicketOrder(int projectId, int? sprintId)
+        {
+            List<Ticket> sprintTickets = await _repositoryManager.Ticket.GetTicketsInProjectSprint(projectId, sprintId);
+            sprintTickets = sprintTickets.OrderBy(x => x.Order).ToList();
+            return sprintTickets.Count > 0 ? sprintTickets.Last().Order + 1 : 0;
         }
     }
 }

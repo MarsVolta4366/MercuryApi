@@ -9,6 +9,7 @@ namespace MercuryApi.Data.Repository
         IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression, bool trackChanges);
         Task Create(T entity);
         void Delete(T entity);
+        IQueryable<T> RunSqlRaw(string sql);
     }
 
     public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : class
@@ -32,5 +33,8 @@ namespace MercuryApi.Data.Repository
             await Context.Set<T>().AddAsync(entity);
 
         public void Delete(T entity) => Context.Set<T>().Remove(entity);
+
+        public IQueryable<T> RunSqlRaw(string sql) =>
+            Context.Set<T>().FromSqlRaw(sql);
     }
 }

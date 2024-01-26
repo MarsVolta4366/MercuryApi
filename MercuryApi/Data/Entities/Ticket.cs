@@ -21,6 +21,8 @@ public partial class Ticket
 
     public int? Points { get; set; }
 
+    public int Order { get; set; }
+
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
     public virtual Project Project { get; set; } = null!;

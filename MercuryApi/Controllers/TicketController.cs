@@ -27,7 +27,7 @@ namespace MercuryApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateTicket([FromBody] TicketUpsert request)
+        public async Task<ActionResult> CreateTicket([FromBody] TicketCreate request)
         {
             TicketDto response = await _ticketBusinessLogic.CreateTicket(request);
 
@@ -35,7 +35,7 @@ namespace MercuryApi.Controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult> UpdateTicket([FromBody] TicketUpsert request)
+        public async Task<ActionResult> UpdateTicket([FromBody] TicketUpdate request)
         {
             TicketDto? response = await _ticketBusinessLogic.UpdateTicket(request);
 
@@ -46,8 +46,25 @@ namespace MercuryApi.Controllers
         [HttpDelete("{ticketId}")]
         public async Task<ActionResult> DeleteTicketById([FromRoute] int ticketId)
         {
+            // Ticket table has after delete trigger to handle updating order of other tickets in sprint.
             await _ticketBusinessLogic.DeleteTicketById(ticketId);
             return NoContent();
+        }
+
+        [HttpPut("update-ticket-order")]
+        public async Task<ActionResult> UpdateTicketOrder([FromBody] TicketOrderUpsert request)
+        {
+            TicketDto? response = await _ticketBusinessLogic.UpdateTicketOrder(request);
+            if (response == null) return NotFound();
+            return Ok(response);
+        }
+
+        [HttpPut("update-ticket-order-and-sprint")]
+        public async Task<ActionResult> UpdateTicketOrderAndSprint([FromBody] TicketOrderAndSprintUpsert request)
+        {
+            TicketDto? response = await _ticketBusinessLogic.UpdateTicketOrderAndSprint(request);
+            if (response == null) return NotFound();
+            return Ok(response);
         }
     }
 }
